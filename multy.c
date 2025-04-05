@@ -1,4 +1,6 @@
 #include "multy.h"
+#include <SDL2/SDL_render.h>
+#include <SDL2/SDL_video.h>
 
 enum DSP {
   PERFORM,
@@ -53,12 +55,19 @@ void *multy_new(void) {
   /* Print message to Max window */
   post("multy~ • Object was created");
 
+  if (SDL_CreateWindowAndRenderer(WIDTH, HEIGHT, SDL_WINDOW_RESIZABLE,
+                                  &x->window, &x->renderer)) {
+    post("Couldn't create window/renderer: %s", SDL_GetError());
+    return NULL;
+  }
+
   /* Return a pointer to the new object */
   return (void *)x;
 }
 
 void multy_free(t_multy *x) {
-  // Nothing to free
+  SDL_DestroyRenderer(x->renderer);
+  SDL_DestroyWindow(x->window);
 
   /* Print message to Max window */
   post("multy~ • Memory was freed");
