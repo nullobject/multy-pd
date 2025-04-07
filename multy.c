@@ -1,10 +1,20 @@
 #include <SDL2/SDL2_framerate.h>
+#include <SDL2/SDL_render.h>
 #include <m_pd.h>
 
 #include "multy.h"
 
 #define WIDTH 600
 #define HEIGHT 600
+
+void render(SDL_Renderer *renderer, uint step) {
+  SDL_Rect rect = {step * 50 % WIDTH, 0, 50, 50};
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+  SDL_RenderClear(renderer);
+  SDL_SetRenderDrawColor(renderer, 0xff, 0, 0, 255);
+  SDL_RenderFillRect(renderer, &rect);
+  SDL_RenderPresent(renderer);
+}
 
 void *run(void *x) {
   t_multy *m = (t_multy *)x;
@@ -32,13 +42,7 @@ void *run(void *x) {
       }
     }
 
-    SDL_Rect rect = {m->step * 50 % WIDTH, 0, 50, 50};
-
-    SDL_SetRenderDrawColor(m->renderer, 0, 0, 0, 255);
-    SDL_RenderClear(m->renderer);
-    SDL_SetRenderDrawColor(m->renderer, 0xff, 0, 0, 255);
-    SDL_RenderFillRect(m->renderer, &rect);
-    SDL_RenderPresent(m->renderer);
+    render(m->renderer, m->step);
     SDL_framerateDelay(&fps);
   }
 
