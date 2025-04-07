@@ -7,12 +7,6 @@ PD_CFLAGS = $(shell pkg-config --cflags pd)
 SDL_CFLAGS = $(shell pkg-config --cflags SDL2_gfx)
 SDL_LIBS = $(shell pkg-config --libs SDL2_gfx)
 
-multy.o: multy.c
-	cc -Wall -fPIC -ggdb -o $@ -c $< $(PD_CFLAGS) $(SDL_CFLAGS)
-
-$(BIN_NAME): multy.o
-	cc -rdynamic -shared -o $@ $< -lc -lm $(SDL_LIBS)
-
 all: $(BIN_NAME)
 .PHONY: all
 
@@ -28,3 +22,9 @@ debug:
 clean:
 	rm -f $(BIN_NAME) multy.o
 .PHONY: clean
+
+multy.o: multy.c
+	cc -Wall -fPIC -ggdb -o $@ -c $< $(PD_CFLAGS) $(SDL_CFLAGS)
+
+$(BIN_NAME): multy.o
+	cc -rdynamic -shared -o $@ $< -lc -lm $(SDL_LIBS)
