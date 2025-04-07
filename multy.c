@@ -7,7 +7,10 @@
 #define WIDTH 600
 #define HEIGHT 600
 
-void step_state(state_t *state) { state->step++; }
+void step_state(state_t *state) {
+  // TODO:: Update state
+  state->step++;
+}
 
 void render(SDL_Renderer *renderer, state_t *state) {
   SDL_Rect rect = {state->step * 50 % WIDTH, 0, 50, 50};
@@ -19,16 +22,18 @@ void render(SDL_Renderer *renderer, state_t *state) {
 }
 
 void *run(t_multy *x) {
-  post("multy~ • Creating renderer...");
+  SDL_Window *window;
+  SDL_Renderer *renderer;
+  FPSmanager fps;
 
-  x->renderer = SDL_CreateRenderer(x->window, -1, SDL_RENDERER_ACCELERATED);
+  post("multy~ • Starting renderer...");
 
-  if (!x->renderer) {
-    bug("multy~ • Couldn't create renderer: %s", SDL_GetError());
+  if (SDL_CreateWindowAndRenderer(WIDTH, HEIGHT, SDL_WINDOW_RESIZABLE, &window,
+                                  &renderer)) {
+    bug("multy~ • Couldn't create window: %s", SDL_GetError());
     return NULL;
   }
 
-  FPSmanager fps;
   SDL_initFramerate(&fps);
   SDL_setFramerate(&fps, 30);
 
@@ -42,14 +47,15 @@ void *run(t_multy *x) {
       }
     }
 
-    render(x->renderer, &x->state);
+    render(renderer, &x->state);
 
     SDL_framerateDelay(&fps);
   }
 
-  post("multy~ • Destroying renderer...");
+  post("multy~ • Stopping renderer...");
 
-  SDL_DestroyRenderer(x->renderer);
+  SDL_DestroyRenderer(renderer);
+  SDL_DestroyWindow(window);
 
   return NULL;
 }
@@ -65,18 +71,9 @@ void *multy_new() {
   x->note_out = outlet_new(&x->obj, &s_float);
   x->velo_out = outlet_new(&x->obj, &s_float);
 
-  post("multy~ • Object was created");
-
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
 
-  x->window =
-      SDL_CreateWindow("test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                       WIDTH, HEIGHT, SDL_WINDOW_RESIZABLE);
-
-  if (!x->window) {
-    bug("multy~ • Couldn't create window: %s", SDL_GetError());
-    return NULL;
-  }
+  post("multy~ • Object was created");
 
   x->running = true;
 
@@ -91,7 +88,6 @@ void multy_free(t_multy *x) {
 
   pthread_join(x->thread, NULL);
 
-  SDL_DestroyWindow(x->window);
   SDL_Quit();
 
   post("multy~ • Memory was freed");
