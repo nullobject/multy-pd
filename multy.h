@@ -8,18 +8,19 @@
 #include <sys/types.h>
 
 typedef struct {
+  uint step;
+} state_t;
+
+typedef struct {
   t_object obj;
   t_outlet *note_out, *velo_out;
   pthread_t thread;
   bool running;
-  uint step;
+  state_t state;
   SDL_Window *window;
   SDL_Renderer *renderer;
 } t_multy;
 
 static t_class *multy_class;
-
-void multy_dsp(t_multy *x, t_signal **sp, short *count);
-t_int *multy_perform(t_int *w);
 
 #endif

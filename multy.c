@@ -7,8 +7,10 @@
 #define WIDTH 600
 #define HEIGHT 600
 
-void render(SDL_Renderer *renderer, uint step) {
-  SDL_Rect rect = {step * 50 % WIDTH, 0, 50, 50};
+void step_state(state_t *state) { state->step++; }
+
+void render(SDL_Renderer *renderer, state_t *state) {
+  SDL_Rect rect = {state->step * 50 % WIDTH, 0, 50, 50};
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
   SDL_RenderClear(renderer);
   SDL_SetRenderDrawColor(renderer, 0xff, 0, 0, 255);
@@ -16,47 +18,45 @@ void render(SDL_Renderer *renderer, uint step) {
   SDL_RenderPresent(renderer);
 }
 
-void *run(void *x) {
-  t_multy *m = (t_multy *)x;
-
+void *run(t_multy *x) {
   post("multy~ • Creating renderer...");
 
-  m->renderer = SDL_CreateRenderer(m->window, -1, SDL_RENDERER_ACCELERATED);
+  x->renderer = SDL_CreateRenderer(x->window, -1, SDL_RENDERER_ACCELERATED);
+
+  if (!x->renderer) {
+    bug("multy~ • Couldn't create renderer: %s", SDL_GetError());
+    return NULL;
+  }
 
   FPSmanager fps;
   SDL_initFramerate(&fps);
   SDL_setFramerate(&fps, 30);
 
-  if (!m->renderer) {
-    bug("multy~ • Couldn't create renderer: %s", SDL_GetError());
-    return NULL;
-  }
-
-  while (m->running) {
+  while (x->running) {
     SDL_Event e;
 
     while (SDL_PollEvent(&e)) {
       if (e.type == SDL_QUIT) {
-        m->running = false;
+        x->running = false;
         break;
       }
     }
 
-    render(m->renderer, m->step);
+    render(x->renderer, &x->state);
+
     SDL_framerateDelay(&fps);
   }
 
   post("multy~ • Destroying renderer...");
 
-  SDL_DestroyRenderer(m->renderer);
+  SDL_DestroyRenderer(x->renderer);
 
   return NULL;
 }
 
 void multy_bang(t_multy *x) {
   post("multy~ • Bang!");
-  float_t a = x->step++ % 4;
-  outlet_float(x->note_out, a);
+  step_state(&x->state);
 }
 
 void *multy_new() {
@@ -79,16 +79,16 @@ void *multy_new() {
   }
 
   x->running = true;
-  x->step = 0;
 
   // Create render thread
-  pthread_create(&x->thread, NULL, run, x);
+  pthread_create(&x->thread, NULL, (void *(*)(void *))run, x);
 
   return x;
 }
 
 void multy_free(t_multy *x) {
   x->running = false;
+
   pthread_join(x->thread, NULL);
 
   SDL_DestroyWindow(x->window);
