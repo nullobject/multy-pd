@@ -1,15 +1,17 @@
 LIB_NAME = multy~
 EXTENSION = pd_linux
 BIN_NAME = $(LIB_NAME).$(EXTENSION)
-PD_FLAGS = $(shell pkg-config --cflags --libs pd)
 PD_DIR = $(HOME)/Documents/Pd/externals
 INSTALL_DIR = $(PD_DIR)/$(LIB_NAME)
+PD_CFLAGS = $(shell pkg-config --cflags pd)
+SDL_CFLAGS = $(shell pkg-config --cflags SDL2_gfx)
+SDL_LIBS = $(shell pkg-config --libs SDL2_gfx)
 
-%.o: multy.c
-	cc -Wall -fPIC -o $@ -c $< $(PD_FLAGS)
+multy.o: multy.c
+	cc -Wall -fPIC -o $@ -c $< $(PD_CFLAGS) $(SDL_CFLAGS)
 
-%.$(EXTENSION): %.o
-	cc -rdynamic -shared -o $@ $< -lc -lm
+$(BIN_NAME): multy.o
+	cc -rdynamic -shared -o $@ $< -lc -lm $(SDL_LIBS)
 
 all: $(BIN_NAME)
 .PHONY: all
@@ -20,5 +22,5 @@ install: $(BIN_NAME)
 .PHONY: install
 
 clean:
-	rm -f $(BIN_NAME)
+	rm -f $(BIN_NAME) multy.o
 .PHONY: clean
