@@ -1,80 +1,103 @@
+#include <SDL2/SDL2_framerate.h>
+#include <m_pd.h>
+
 #include "multy.h"
 
-enum DSP {
-  PERFORM,
-  OBJECT,
-  INPUT1_VECTOR,
-  INPUT2_VECTOR,
-  OUTPUT_VECTOR,
-  VECTOR_SIZE,
-  NEXT
-};
+#define WIDTH 600
+#define HEIGHT 600
 
-void multy_dsp(t_multy *x, t_signal **sp, short *count) {
-  /* Attach the object to the DSP chain */
-  dsp_add(multy_perform, NEXT - 1, x, sp[0]->s_vec, sp[1]->s_vec, sp[2]->s_vec,
-          sp[0]->s_n);
+void *run(void *x) {
+  t_multy *m = (t_multy *)x;
 
-  /* Print message to Max window */
-  post("multy~ • Executing 32-bit perform routine");
-}
+  post("multy~ • Creating renderer...");
 
-t_int *multy_perform(t_int *w) {
-  /* Copy the object pointer */
-  // t_multy *x = (t_multy *)w[OBJECT];
+  m->renderer = SDL_CreateRenderer(m->window, -1, SDL_RENDERER_ACCELERATED);
 
-  /* Copy signal pointers */
-  t_float *in1 = (t_float *)w[INPUT1_VECTOR];
-  t_float *in2 = (t_float *)w[INPUT2_VECTOR];
-  t_float *out = (t_float *)w[OUTPUT_VECTOR];
+  FPSmanager fps;
+  SDL_initFramerate(&fps);
+  SDL_setFramerate(&fps, 30);
 
-  /* Copy the signal vector size */
-  t_int n = w[VECTOR_SIZE];
-
-  /* Perform the DSP loop */
-  while (n--) {
-    *out++ = *in1++ * *in2++;
+  if (!m->renderer) {
+    bug("multy~ • Couldn't create renderer: %s", SDL_GetError());
+    return NULL;
   }
 
-  /* Return the next address in the DSP chain */
-  return w + NEXT;
+  while (m->running) {
+    SDL_Event e;
+
+    while (SDL_PollEvent(&e)) {
+      if (e.type == SDL_QUIT) {
+        m->running = false;
+        break;
+      }
+    }
+
+    SDL_Rect rect = {m->step * 50 % WIDTH, 0, 50, 50};
+
+    SDL_SetRenderDrawColor(m->renderer, 0, 0, 0, 255);
+    SDL_RenderClear(m->renderer);
+    SDL_SetRenderDrawColor(m->renderer, 0xff, 0, 0, 255);
+    SDL_RenderFillRect(m->renderer, &rect);
+    SDL_RenderPresent(m->renderer);
+    SDL_framerateDelay(&fps);
+  }
+
+  post("multy~ • Destroying renderer...");
+
+  SDL_DestroyRenderer(m->renderer);
+
+  return NULL;
 }
 
-void *multy_new(void) {
-  /* Instantiate a new object */
+void multy_bang(t_multy *x) {
+  post("multy~ • Bang!");
+  float_t a = x->step++ % 4;
+  outlet_float(x->note_out, a);
+}
+
+void *multy_new() {
   t_multy *x = (t_multy *)pd_new(multy_class);
 
-  /* Create signal inlets */
-  inlet_new(&x->obj, &x->obj.ob_pd, gensym("signal"), gensym("signal"));
+  x->note_out = outlet_new(&x->obj, &s_float);
+  x->velo_out = outlet_new(&x->obj, &s_float);
 
-  /* Create signal outlets */
-  outlet_new(&x->obj, gensym("signal"));
-
-  /* Print message to Max window */
   post("multy~ • Object was created");
 
-  /* Return a pointer to the new object */
-  return (void *)x;
+  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
+
+  x->window =
+      SDL_CreateWindow("test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                       WIDTH, HEIGHT, SDL_WINDOW_RESIZABLE);
+
+  if (!x->window) {
+    bug("multy~ • Couldn't create window: %s", SDL_GetError());
+    return NULL;
+  }
+
+  x->running = true;
+  x->step = 0;
+
+  // Create render thread
+  pthread_create(&x->thread, NULL, run, x);
+
+  return x;
 }
 
 void multy_free(t_multy *x) {
-  // Nothing to free
+  x->running = false;
+  pthread_join(x->thread, NULL);
 
-  /* Print message to Max window */
+  SDL_DestroyWindow(x->window);
+  SDL_Quit();
+
   post("multy~ • Memory was freed");
 }
 
-void multy_tilde_setup(void) {
-  /* Initialize the class */
+void multy_tilde_setup() {
   multy_class = class_new(gensym("multy~"), (t_newmethod)multy_new,
                           (t_method)multy_free, sizeof(t_multy), 0, 0);
 
-  /* Specify signal input, with automatic float to signal conversion */
-  CLASS_MAINSIGNALIN(multy_class, t_multy, x_f);
+  class_addbang(multy_class, multy_bang);
 
-  /* Bind the DSP method, which is called when the DACs are turned on */
-  class_addmethod(multy_class, (t_method)multy_dsp, gensym("dsp"), 0);
-
-  /* Print message to Max window */
   post("multy~ • External was loaded");
 }
