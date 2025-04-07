@@ -8,7 +8,7 @@ SDL_CFLAGS = $(shell pkg-config --cflags SDL2_gfx)
 SDL_LIBS = $(shell pkg-config --libs SDL2_gfx)
 
 multy.o: multy.c
-	cc -Wall -fPIC -o $@ -c $< $(PD_CFLAGS) $(SDL_CFLAGS)
+	cc -Wall -fPIC -ggdb -o $@ -c $< $(PD_CFLAGS) $(SDL_CFLAGS)
 
 $(BIN_NAME): multy.o
 	cc -rdynamic -shared -o $@ $< -lc -lm $(SDL_LIBS)
@@ -20,6 +20,10 @@ install: $(BIN_NAME)
 	mkdir -p $(INSTALL_DIR)
 	cp -v $(BIN_NAME) $(INSTALL_DIR)
 .PHONY: install
+
+debug:
+	gf2 --args `which puredata` -nrt test.pd &
+.PHONY: debug
 
 clean:
 	rm -f $(BIN_NAME) multy.o
