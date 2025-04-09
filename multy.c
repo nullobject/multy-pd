@@ -58,20 +58,33 @@ void render(SDL_Renderer *renderer, size_t width, size_t height,
   size_t size = width > height ? height : width;
   size_t cell_width = size / GRID_SIZE;
   size_t cell_height = size / GRID_SIZE;
+
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0xff);
   SDL_RenderClear(renderer);
 
   for (size_t y = 0; y < GRID_SIZE; y++) {
     for (size_t x = 0; x < GRID_SIZE; x++) {
-      SDL_Rect rect = {x * cell_width, y * cell_height, cell_width,
-                       cell_height};
+      SDL_Point origin = {x * cell_width, y * cell_height};
+      SDL_Rect rect1 = {origin.x, origin.y, cell_width, cell_height};
+      SDL_Rect rect2 = {origin.x + 1, origin.y + 1, cell_width - 2,
+                        cell_height - 2};
+      SDL_Point points[] = {
+          {origin.x + 10, origin.y + (cell_height / 2)},
+          {origin.x + (cell_width - 20), origin.y + (cell_height / 2)},
+          {origin.x + (cell_width - 20), origin.y + (cell_height / 2) - 10},
+          {origin.x + (cell_width - 10), origin.y + (cell_height / 2)},
+          {origin.x + (cell_width - 20), origin.y + (cell_height / 2) + 10},
+          {origin.x + (cell_width - 20), origin.y + (cell_height / 2) - 10},
+      };
+
       SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
-      SDL_RenderDrawRect(renderer, &rect);
+      SDL_RenderDrawRect(renderer, &rect1);
+
       if (state->grid.cells[y][x]) {
-        SDL_Rect rect = {x * cell_width + 1, y * cell_height + 1,
-                         cell_width - 2, cell_height - 2};
         SDL_SetRenderDrawColor(renderer, 0xff, 0, 0, 0xff);
-        SDL_RenderFillRect(renderer, &rect);
+        SDL_RenderFillRect(renderer, &rect2);
+        SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+        SDL_RenderDrawLines(renderer, points, 6);
       }
     }
   }
