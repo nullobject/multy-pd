@@ -53,44 +53,45 @@ void step_state(state_t *state) {
   memcpy(&state->grid, &next_grid, sizeof(grid_t));
 }
 
-static void draw_arrow(SDL_Renderer *renderer, int dir, SDL_Point origin,
-                       size_t width, size_t height) {
-  SDL_Point points[4][6] = {
+static void draw_arrow(SDL_Renderer *renderer, int dir, const SDL_Rect *rect) {
+  int a = rect->w / 6;
+  int b = rect->w / 3;
+  SDL_Point arrows[4][6] = {
       {
-          {origin.x + (height / 2), origin.y + (width - 10)},
-          {origin.x + (height / 2), origin.y + 20},
-          {origin.x + (height / 2) - 10, origin.y + 20},
-          {origin.x + (height / 2), origin.y + 10},
-          {origin.x + (height / 2) + 10, origin.y + 20},
-          {origin.x + (height / 2) - 10, origin.y + 20},
+          {rect->x + (rect->w / 2), rect->y + (rect->h - a)},
+          {rect->x + (rect->w / 2), rect->y + b},
+          {rect->x + (rect->w / 2) - a, rect->y + b},
+          {rect->x + (rect->w / 2), rect->y + a},
+          {rect->x + (rect->w / 2) + a, rect->y + b},
+          {rect->x + (rect->w / 2) - a, rect->y + b},
       },
       {
-          {origin.x + (height / 2), origin.y + 10},
-          {origin.x + (height / 2), origin.y + (width - 20)},
-          {origin.x + (height / 2) - 10, origin.y + (width - 20)},
-          {origin.x + (height / 2), origin.y + (width - 10)},
-          {origin.x + (height / 2) + 10, origin.y + (width - 20)},
-          {origin.x + (height / 2) - 10, origin.y + (width - 20)},
+          {rect->x + (rect->w / 2), rect->y + a},
+          {rect->x + (rect->w / 2), rect->y + (rect->h - b)},
+          {rect->x + (rect->w / 2) - a, rect->y + (rect->h - b)},
+          {rect->x + (rect->w / 2), rect->y + (rect->h - a)},
+          {rect->x + (rect->w / 2) + a, rect->y + (rect->h - b)},
+          {rect->x + (rect->w / 2) - a, rect->y + (rect->h - b)},
       },
       {
-          {origin.x + (width - 10), origin.y + (height / 2)},
-          {origin.x + 20, origin.y + (height / 2)},
-          {origin.x + 20, origin.y + (height / 2) - 10},
-          {origin.x + 10, origin.y + (height / 2)},
-          {origin.x + 20, origin.y + (height / 2) + 10},
-          {origin.x + 20, origin.y + (height / 2) - 10},
+          {rect->x + (rect->w - a), rect->y + (rect->h / 2)},
+          {rect->x + b, rect->y + (rect->h / 2)},
+          {rect->x + b, rect->y + (rect->h / 2) - a},
+          {rect->x + a, rect->y + (rect->h / 2)},
+          {rect->x + b, rect->y + (rect->h / 2) + a},
+          {rect->x + b, rect->y + (rect->h / 2) - a},
       },
       {
-          {origin.x + 10, origin.y + (height / 2)},
-          {origin.x + (width - 20), origin.y + (height / 2)},
-          {origin.x + (width - 20), origin.y + (height / 2) - 10},
-          {origin.x + (width - 10), origin.y + (height / 2)},
-          {origin.x + (width - 20), origin.y + (height / 2) + 10},
-          {origin.x + (width - 20), origin.y + (height / 2) - 10},
+          {rect->x + a, rect->y + (rect->h / 2)},
+          {rect->x + (rect->w - b), rect->y + (rect->h / 2)},
+          {rect->x + (rect->w - b), rect->y + (rect->h / 2) - a},
+          {rect->x + (rect->w - a), rect->y + (rect->h / 2)},
+          {rect->x + (rect->w - b), rect->y + (rect->h / 2) + a},
+          {rect->x + (rect->w - b), rect->y + (rect->h / 2) - a},
       },
   };
 
-  SDL_RenderDrawLines(renderer, points[dir - 1], 6);
+  SDL_RenderDrawLines(renderer, arrows[dir - 1], 6);
 }
 
 void render(SDL_Renderer *renderer, size_t width, size_t height,
@@ -99,25 +100,25 @@ void render(SDL_Renderer *renderer, size_t width, size_t height,
   size_t cell_width = size / GRID_SIZE;
   size_t cell_height = size / GRID_SIZE;
 
-  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0xff);
+  SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
   SDL_RenderClear(renderer);
 
   for (size_t y = 0; y < GRID_SIZE; y++) {
     for (size_t x = 0; x < GRID_SIZE; x++) {
+      cell_t dir = grid->cells[y][x];
       SDL_Point origin = {x * cell_width, y * cell_height};
       SDL_Rect rect1 = {origin.x, origin.y, cell_width, cell_height};
       SDL_Rect rect2 = {origin.x + 1, origin.y + 1, cell_width - 2,
                         cell_height - 2};
 
-      SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+      SDL_SetRenderDrawColor(renderer, 0xcc, 0xcc, 0xcc, 0xff);
       SDL_RenderDrawRect(renderer, &rect1);
 
-      cell_t dir = grid->cells[y][x];
       if (dir) {
-        SDL_SetRenderDrawColor(renderer, 0xff, 0, 0, 0xff);
+        SDL_SetRenderDrawColor(renderer, 0xff, 0xa3, 0x75, 0xff);
         SDL_RenderFillRect(renderer, &rect2);
-        SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
-        draw_arrow(renderer, dir, origin, cell_width, cell_height);
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0xff);
+        draw_arrow(renderer, dir, &rect2);
       }
     }
   }
