@@ -16,7 +16,7 @@ install: $(BIN_NAME)
 .PHONY: install
 
 debug:
-	gf2 --args `which puredata` -nrt test.pd &
+	gf2 -ex run --args `which puredata` -nrt test.pd &
 .PHONY: debug
 
 clean:
