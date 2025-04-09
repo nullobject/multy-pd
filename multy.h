@@ -8,9 +8,13 @@
 
 #define GRID_SIZE 8
 
-enum cell { CELL_EMPTY, CELL_UP, CELL_DOWN, CELL_LEFT, CELL_RIGHT };
+#define CELL_EMPTY 0
+#define CELL_UP 1
+#define CELL_DOWN 2
+#define CELL_LEFT 3
+#define CELL_RIGHT 4
 
-typedef enum cell cell_t;
+typedef int cell_t;
 
 typedef struct {
   cell_t cells[GRID_SIZE][GRID_SIZE];

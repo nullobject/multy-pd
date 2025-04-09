@@ -68,23 +68,50 @@ void render(SDL_Renderer *renderer, size_t width, size_t height,
       SDL_Rect rect1 = {origin.x, origin.y, cell_width, cell_height};
       SDL_Rect rect2 = {origin.x + 1, origin.y + 1, cell_width - 2,
                         cell_height - 2};
-      SDL_Point points[] = {
-          {origin.x + 10, origin.y + (cell_height / 2)},
-          {origin.x + (cell_width - 20), origin.y + (cell_height / 2)},
-          {origin.x + (cell_width - 20), origin.y + (cell_height / 2) - 10},
-          {origin.x + (cell_width - 10), origin.y + (cell_height / 2)},
-          {origin.x + (cell_width - 20), origin.y + (cell_height / 2) + 10},
-          {origin.x + (cell_width - 20), origin.y + (cell_height / 2) - 10},
+      SDL_Point points[4][6] = {
+          {
+              {origin.x + 10, origin.y + (cell_height / 2)},
+              {origin.x + (cell_width - 20), origin.y + (cell_height / 2)},
+              {origin.x + (cell_width - 20), origin.y + (cell_height / 2) - 10},
+              {origin.x + (cell_width - 10), origin.y + (cell_height / 2)},
+              {origin.x + (cell_width - 20), origin.y + (cell_height / 2) + 10},
+              {origin.x + (cell_width - 20), origin.y + (cell_height / 2) - 10},
+          },
+          {
+              {origin.x + 10, origin.y + (cell_height / 2)},
+              {origin.x + (cell_width - 20), origin.y + (cell_height / 2)},
+              {origin.x + (cell_width - 20), origin.y + (cell_height / 2) - 10},
+              {origin.x + (cell_width - 10), origin.y + (cell_height / 2)},
+              {origin.x + (cell_width - 20), origin.y + (cell_height / 2) + 10},
+              {origin.x + (cell_width - 20), origin.y + (cell_height / 2) - 10},
+          },
+          {
+              {origin.x + (cell_width - 10), origin.y + (cell_height / 2)},
+              {origin.x + 20, origin.y + (cell_height / 2)},
+              {origin.x + 20, origin.y + (cell_height / 2) - 10},
+              {origin.x + 10, origin.y + (cell_height / 2)},
+              {origin.x + 20, origin.y + (cell_height / 2) + 10},
+              {origin.x + 20, origin.y + (cell_height / 2) - 10},
+          },
+          {
+              {origin.x + 10, origin.y + (cell_height / 2)},
+              {origin.x + (cell_width - 20), origin.y + (cell_height / 2)},
+              {origin.x + (cell_width - 20), origin.y + (cell_height / 2) - 10},
+              {origin.x + (cell_width - 10), origin.y + (cell_height / 2)},
+              {origin.x + (cell_width - 20), origin.y + (cell_height / 2) + 10},
+              {origin.x + (cell_width - 20), origin.y + (cell_height / 2) - 10},
+          },
       };
 
       SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
       SDL_RenderDrawRect(renderer, &rect1);
 
-      if (state->grid.cells[y][x]) {
+      cell_t dir = state->grid.cells[y][x];
+      if (dir) {
         SDL_SetRenderDrawColor(renderer, 0xff, 0, 0, 0xff);
         SDL_RenderFillRect(renderer, &rect2);
         SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
-        SDL_RenderDrawLines(renderer, points, 6);
+        SDL_RenderDrawLines(renderer, points[dir - 1], 6);
       }
     }
   }
