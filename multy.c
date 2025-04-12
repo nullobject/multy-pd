@@ -6,42 +6,47 @@
 
 #include "multy.h"
 
-#define DEFAULT_WIDTH 600
-#define DEFAULT_HEIGHT 600
+#define DEFAULT_WIDTH 540
+#define DEFAULT_HEIGHT 540
+
+static void update_cell(grid_t *next_grid, const grid_t *prev_grid, size_t x,
+                        size_t y) {
+  if (prev_grid->cells[y][x] & CELL_UP) {
+    if (y == 0) {
+      next_grid->cells[y][x] |= CELL_DOWN;
+    } else {
+      next_grid->cells[y - 1][x] |= CELL_UP;
+    }
+  }
+  if (prev_grid->cells[y][x] & CELL_DOWN) {
+    if (y == GRID_SIZE - 1) {
+      next_grid->cells[y][x] |= CELL_UP;
+    } else {
+      next_grid->cells[y + 1][x] |= CELL_DOWN;
+    }
+  }
+  if (prev_grid->cells[y][x] & CELL_LEFT) {
+    if (x == 0) {
+      next_grid->cells[y][x] |= CELL_RIGHT;
+    } else {
+      next_grid->cells[y][x - 1] |= CELL_LEFT;
+    }
+  }
+  if (prev_grid->cells[y][x] & CELL_RIGHT) {
+    if (x == GRID_SIZE - 1) {
+      next_grid->cells[y][x] |= CELL_LEFT;
+    } else {
+      next_grid->cells[y][x + 1] |= CELL_RIGHT;
+    }
+  }
+}
 
 void step_state(state_t *state) {
   grid_t next_grid = {0};
 
   for (size_t y = 0; y < GRID_SIZE; y++) {
     for (size_t x = 0; x < GRID_SIZE; x++) {
-      if (state->grid.cells[y][x] & CELL_UP) {
-        if (y == 0) {
-          next_grid.cells[y][x] |= CELL_DOWN;
-        } else {
-          next_grid.cells[y - 1][x] |= CELL_UP;
-        }
-      }
-      if (state->grid.cells[y][x] & CELL_DOWN) {
-        if (y == GRID_SIZE - 1) {
-          next_grid.cells[y][x] |= CELL_UP;
-        } else {
-          next_grid.cells[y + 1][x] |= CELL_DOWN;
-        }
-      }
-      if (state->grid.cells[y][x] & CELL_LEFT) {
-        if (x == 0) {
-          next_grid.cells[y][x] |= CELL_RIGHT;
-        } else {
-          next_grid.cells[y][x - 1] |= CELL_LEFT;
-        }
-      }
-      if (state->grid.cells[y][x] & CELL_RIGHT) {
-        if (x == GRID_SIZE - 1) {
-          next_grid.cells[y][x] |= CELL_LEFT;
-        } else {
-          next_grid.cells[y][x + 1] |= CELL_RIGHT;
-        }
-      }
+      update_cell(&next_grid, &state->grid, x, y);
     }
   }
 
