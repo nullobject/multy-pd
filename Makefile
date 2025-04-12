@@ -15,6 +15,10 @@ install: $(BIN_NAME)
 	cp -v $(BIN_NAME) $(INSTALL_DIR)
 .PHONY: install
 
+run:
+	`which puredata` test.pd &
+.PHONY: run
+
 debug:
 	gf2 -ex run --args `which puredata` -nrt test.pd &
 .PHONY: debug
