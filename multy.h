@@ -8,13 +8,15 @@
 
 #define GRID_SIZE 8
 
-#define CELL_EMPTY 0
-#define CELL_UP 1
-#define CELL_DOWN 2
-#define CELL_LEFT 3
-#define CELL_RIGHT 4
+// clang-format off
+#define CELL_EMPTY 0x0
+#define CELL_UP    0x1
+#define CELL_DOWN  0x2
+#define CELL_LEFT  0x4
+#define CELL_RIGHT 0x8
+// clang-format on
 
-typedef int cell_t;
+typedef uint cell_t;
 
 typedef struct {
   cell_t cells[GRID_SIZE][GRID_SIZE];

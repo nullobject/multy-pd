@@ -91,7 +91,18 @@ static void draw_arrow(SDL_Renderer *renderer, int dir, const SDL_Rect *rect) {
       },
   };
 
-  SDL_RenderDrawLines(renderer, arrows[dir - 1], 6);
+  if (dir & CELL_UP) {
+    SDL_RenderDrawLines(renderer, arrows[0], 6);
+  }
+  if (dir & CELL_DOWN) {
+    SDL_RenderDrawLines(renderer, arrows[1], 6);
+  }
+  if (dir & CELL_LEFT) {
+    SDL_RenderDrawLines(renderer, arrows[2], 6);
+  }
+  if (dir & CELL_RIGHT) {
+    SDL_RenderDrawLines(renderer, arrows[3], 6);
+  }
 }
 
 void render(SDL_Renderer *renderer, size_t width, size_t height,
