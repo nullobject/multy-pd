@@ -1,45 +1,49 @@
+/*
+ *   __   __     __  __     __         __
+ *  /\ "-.\ \   /\ \/\ \   /\ \       /\ \
+ *  \ \ \-.  \  \ \ \_\ \  \ \ \____  \ \ \____
+ *   \ \_\\"\_\  \ \_____\  \ \_____\  \ \_____\
+ *    \/_/ \/_/   \/_____/   \/_____/   \/_____/
+ *   ______     ______       __     ______     ______     ______
+ *  /\  __ \   /\  == \     /\ \   /\  ___\   /\  ___\   /\__  _\
+ *  \ \ \/\ \  \ \  __<    _\_\ \  \ \  __\   \ \ \____  \/_/\ \/
+ *   \ \_____\  \ \_____\ /\_____\  \ \_____\  \ \_____\    \ \_\
+ *    \/_____/   \/_____/ \/_____/   \/_____/   \/_____/     \/_/
+ *
+ * https://joshbassett.info
+ *
+ * Copyright (c) 2025 Joshua Bassett
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 #include <SDL2/SDL2_framerate.h>
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_video.h>
 #include <m_pd.h>
 
+#include "grid.h"
 #include "multy.h"
 
 #define DEFAULT_WIDTH 540
 #define DEFAULT_HEIGHT 540
-
-static void update_cell(grid_t *next_grid, const grid_t *prev_grid, size_t x,
-                        size_t y) {
-  if (prev_grid->cells[y][x] & CELL_UP) {
-    if (y == 0) {
-      next_grid->cells[y + 1][x] |= CELL_DOWN;
-    } else {
-      next_grid->cells[y - 1][x] |= CELL_UP;
-    }
-  }
-  if (prev_grid->cells[y][x] & CELL_DOWN) {
-    if (y == GRID_SIZE - 1) {
-      next_grid->cells[y - 1][x] |= CELL_UP;
-    } else {
-      next_grid->cells[y + 1][x] |= CELL_DOWN;
-    }
-  }
-  if (prev_grid->cells[y][x] & CELL_LEFT) {
-    if (x == 0) {
-      next_grid->cells[y][x + 1] |= CELL_RIGHT;
-    } else {
-      next_grid->cells[y][x - 1] |= CELL_LEFT;
-    }
-  }
-  if (prev_grid->cells[y][x] & CELL_RIGHT) {
-    if (x == GRID_SIZE - 1) {
-      next_grid->cells[y][x - 1] |= CELL_LEFT;
-    } else {
-      next_grid->cells[y][x + 1] |= CELL_RIGHT;
-    }
-  }
-}
 
 void step_state(state_t *state) {
   grid_t next_grid = {0};
@@ -53,7 +57,7 @@ void step_state(state_t *state) {
   memcpy(&state->grid, &next_grid, sizeof(grid_t));
 }
 
-static void draw_arrow(SDL_Renderer *renderer, int dir, const SDL_Rect *rect) {
+static void draw_cell(SDL_Renderer *renderer, const SDL_Rect *rect, int cell) {
   int a = rect->w / 6;
   int b = rect->w / 3;
   SDL_Point arrows[4][6] = {
@@ -91,22 +95,22 @@ static void draw_arrow(SDL_Renderer *renderer, int dir, const SDL_Rect *rect) {
       },
   };
 
-  if (dir & CELL_UP) {
+  if (cell & CELL_UP) {
     SDL_RenderDrawLines(renderer, arrows[0], 6);
   }
-  if (dir & CELL_DOWN) {
+  if (cell & CELL_DOWN) {
     SDL_RenderDrawLines(renderer, arrows[1], 6);
   }
-  if (dir & CELL_LEFT) {
+  if (cell & CELL_LEFT) {
     SDL_RenderDrawLines(renderer, arrows[2], 6);
   }
-  if (dir & CELL_RIGHT) {
+  if (cell & CELL_RIGHT) {
     SDL_RenderDrawLines(renderer, arrows[3], 6);
   }
 }
 
-void render(SDL_Renderer *renderer, size_t width, size_t height,
-            const grid_t *grid) {
+void draw_grid(SDL_Renderer *renderer, size_t width, size_t height,
+               const grid_t *grid) {
   size_t size = width > height ? height : width;
   size_t cell_width = size / GRID_SIZE;
   size_t cell_height = size / GRID_SIZE;
@@ -129,7 +133,7 @@ void render(SDL_Renderer *renderer, size_t width, size_t height,
         SDL_SetRenderDrawColor(renderer, 0xff, 0xa3, 0x75, 0xff);
         SDL_RenderFillRect(renderer, &rect2);
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0xff);
-        draw_arrow(renderer, dir, &rect2);
+        draw_cell(renderer, &rect2, dir);
       }
     }
   }
@@ -169,7 +173,7 @@ void *run(t_multy *x) {
       }
     }
 
-    render(renderer, width, height, &x->state.grid);
+    draw_grid(renderer, width, height, &x->state.grid);
 
     SDL_framerateDelay(&fps);
   }

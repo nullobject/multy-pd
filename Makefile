@@ -24,11 +24,11 @@ debug:
 .PHONY: debug
 
 clean:
-	rm -f $(BIN_NAME) multy.o
+	rm -f $(BIN_NAME) *.o
 .PHONY: clean
 
-multy.o: multy.c
+%.o: %.c
 	cc -Wall -Werror -fPIC -ggdb -o $@ -c $< $(PD_CFLAGS) $(SDL_CFLAGS)
 
-$(BIN_NAME): multy.o
-	cc -rdynamic -shared -o $@ $< -lc -lm $(SDL_LIBS)
+$(BIN_NAME): grid.o multy.o
+	cc -rdynamic -shared -o $@ grid.o multy.o -lc -lm $(SDL_LIBS)

@@ -33,27 +33,38 @@
  * SOFTWARE.
  */
 
-#ifndef MULTY_H_
-#define MULTY_H_
-
-#include <m_pd.h>
-#include <pthread.h>
-#include <stdbool.h>
+#include <sys/types.h>
 
 #include "grid.h"
 
-typedef struct {
-  grid_t grid;
-} state_t;
-
-typedef struct {
-  t_object obj;
-  t_outlet *note_out, *velo_out;
-  bool running;
-  pthread_t thread;
-  state_t state;
-} t_multy;
-
-static t_class *multy_class;
-
-#endif
+void update_cell(grid_t *next_grid, const grid_t *prev_grid, size_t x,
+                 size_t y) {
+  if (prev_grid->cells[y][x] & CELL_UP) {
+    if (y == 0) {
+      next_grid->cells[y + 1][x] |= CELL_DOWN;
+    } else {
+      next_grid->cells[y - 1][x] |= CELL_UP;
+    }
+  }
+  if (prev_grid->cells[y][x] & CELL_DOWN) {
+    if (y == GRID_SIZE - 1) {
+      next_grid->cells[y - 1][x] |= CELL_UP;
+    } else {
+      next_grid->cells[y + 1][x] |= CELL_DOWN;
+    }
+  }
+  if (prev_grid->cells[y][x] & CELL_LEFT) {
+    if (x == 0) {
+      next_grid->cells[y][x + 1] |= CELL_RIGHT;
+    } else {
+      next_grid->cells[y][x - 1] |= CELL_LEFT;
+    }
+  }
+  if (prev_grid->cells[y][x] & CELL_RIGHT) {
+    if (x == GRID_SIZE - 1) {
+      next_grid->cells[y][x - 1] |= CELL_LEFT;
+    } else {
+      next_grid->cells[y][x + 1] |= CELL_RIGHT;
+    }
+  }
+}
