@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <sys/types.h>
 
-#define GRID_SIZE 8
+#define GRID_SIZE 9
 
 // clang-format off
 #define CELL_EMPTY 0x0
@@ -15,6 +15,11 @@
 #define CELL_LEFT  0x4
 #define CELL_RIGHT 0x8
 // clang-format on
+
+// Lookup table for the number of bits set in a nibble
+static const uint8_t NIBBLE_LOOKUP[8] = {
+  0, 1, 1, 2, 1, 2, 2, 3,
+};
 
 typedef uint cell_t;
 

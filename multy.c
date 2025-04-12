@@ -14,38 +14,33 @@ void step_state(state_t *state) {
 
   for (size_t y = 0; y < GRID_SIZE; y++) {
     for (size_t x = 0; x < GRID_SIZE; x++) {
-      switch (state->grid.cells[y][x]) {
-      case CELL_UP:
-        if (y == 0 || state->grid.cells[y - 1][x]) {
-          next_grid.cells[y][x] = CELL_DOWN;
+      if (state->grid.cells[y][x] & CELL_UP) {
+        if (y == 0) {
+          next_grid.cells[y][x] |= CELL_DOWN;
         } else {
-          next_grid.cells[y - 1][x] = CELL_UP;
+          next_grid.cells[y - 1][x] |= CELL_UP;
         }
-        break;
-      case CELL_DOWN:
-        if (y == GRID_SIZE - 1 || state->grid.cells[y + 1][x]) {
-          next_grid.cells[y][x] = CELL_UP;
+      }
+      if (state->grid.cells[y][x] & CELL_DOWN) {
+        if (y == GRID_SIZE - 1) {
+          next_grid.cells[y][x] |= CELL_UP;
         } else {
-          next_grid.cells[y + 1][x] = CELL_DOWN;
+          next_grid.cells[y + 1][x] |= CELL_DOWN;
         }
-        break;
-      case CELL_LEFT:
-        if (x == 0 || state->grid.cells[y][x - 1]) {
-          next_grid.cells[y][x] = CELL_RIGHT;
+      }
+      if (state->grid.cells[y][x] & CELL_LEFT) {
+        if (x == 0) {
+          next_grid.cells[y][x] |= CELL_RIGHT;
         } else {
-          next_grid.cells[y][x - 1] = CELL_LEFT;
+          next_grid.cells[y][x - 1] |= CELL_LEFT;
         }
-        break;
-      case CELL_RIGHT:
-        if (x == GRID_SIZE - 1 || state->grid.cells[y][x + 1]) {
-          next_grid.cells[y][x] = CELL_LEFT;
+      }
+      if (state->grid.cells[y][x] & CELL_RIGHT) {
+        if (x == GRID_SIZE - 1) {
+          next_grid.cells[y][x] |= CELL_LEFT;
         } else {
-          next_grid.cells[y][x + 1] = CELL_RIGHT;
+          next_grid.cells[y][x + 1] |= CELL_RIGHT;
         }
-        break;
-      default:
-        // do nothing
-        break;
       }
     }
   }
@@ -200,7 +195,7 @@ void *multy_new() {
   x->running = true;
   x->state.grid.cells[0][0] = CELL_RIGHT;
   x->state.grid.cells[0][4] = CELL_DOWN;
-  x->state.grid.cells[0][7] = CELL_LEFT;
+  x->state.grid.cells[0][8] = CELL_LEFT;
 
   // Create render thread
   pthread_create(&x->thread, NULL, (void *(*)(void *))run, x);
