@@ -141,54 +141,19 @@ void draw_grid(SDL_Renderer *renderer, size_t width, size_t height,
   SDL_RenderPresent(renderer);
 }
 
-void *run(t_multy *x) {
-  SDL_Window *window;
-  SDL_Renderer *renderer;
-  FPSmanager fps;
-  size_t width = DEFAULT_WIDTH;
-  size_t height = DEFAULT_HEIGHT;
-
-  post("multy~ • Starting renderer...");
-
-  if (SDL_CreateWindowAndRenderer(width, height, SDL_WINDOW_RESIZABLE, &window,
-                                  &renderer)) {
-    bug("multy~ • Couldn't create window: %s", SDL_GetError());
-    return NULL;
-  }
-
-  SDL_initFramerate(&fps);
-  SDL_setFramerate(&fps, 30);
-
-  while (x->running) {
-    SDL_Event e;
-
-    while (SDL_PollEvent(&e)) {
-      if (e.type == SDL_QUIT) {
-        x->running = false;
-        break;
-      } else if (e.type == SDL_WINDOWEVENT &&
-                 e.window.event == SDL_WINDOWEVENT_RESIZED) {
-        width = e.window.data1;
-        height = e.window.data2;
-      }
-    }
-
-    draw_grid(renderer, width, height, &x->state.grid);
-
-    SDL_framerateDelay(&fps);
-  }
-
-  post("multy~ • Stopping renderer...");
-
-  SDL_DestroyRenderer(renderer);
-  SDL_DestroyWindow(window);
-
-  return NULL;
-}
-
 void multy_bang(t_multy *x) {
   post("multy~ • Bang!");
   step_state(&x->state);
+
+  SDL_Event e;
+
+  while (SDL_PollEvent(&e)) {
+    if (e.type == SDL_QUIT) {
+      break;
+    }
+  }
+
+  draw_grid(x->renderer, DEFAULT_WIDTH, DEFAULT_HEIGHT, &x->state.grid);
 }
 
 void *multy_new() {
@@ -197,7 +162,18 @@ void *multy_new() {
   x->note_out = outlet_new(&x->obj, &s_float);
   x->velo_out = outlet_new(&x->obj, &s_float);
 
-  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
+  SDL_Init(SDL_INIT_VIDEO);
+  x->window =
+      SDL_CreateWindow("test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                       DEFAULT_WIDTH, DEFAULT_HEIGHT, SDL_WINDOW_RESIZABLE);
+  if (!x->window) {
+    bug("multy~ • Couldn't create window: %s", SDL_GetError());
+    return NULL;
+  }
+  x->renderer = SDL_CreateRenderer(x->window, -1, SDL_RENDERER_ACCELERATED);
+  if (!x->renderer) {
+    bug("multy~ • Couldn't create renderer: %s", SDL_GetError());
+  }
 
   post("multy~ • Object was created");
 
@@ -207,7 +183,7 @@ void *multy_new() {
   x->state.grid.cells[0][8] = CELL_LEFT;
 
   // Create render thread
-  pthread_create(&x->thread, NULL, (void *(*)(void *))run, x);
+  // pthread_create(&x->thread, NULL, (void *(*)(void *))run, x);
 
   return x;
 }
@@ -215,15 +191,17 @@ void *multy_new() {
 void multy_free(t_multy *x) {
   x->running = false;
 
-  pthread_join(x->thread, NULL);
+  // pthread_join(x->thread, NULL);
 
+  SDL_DestroyRenderer(x->renderer);
+  SDL_DestroyWindow(x->window);
   SDL_Quit();
 
   post("multy~ • Memory was freed");
 }
 
-void multy_tilde_setup() {
-  multy_class = class_new(gensym("multy~"), (t_newmethod)multy_new,
+void multy_setup() {
+  multy_class = class_new(gensym("multy"), (t_newmethod)multy_new,
                           (t_method)multy_free, sizeof(t_multy), 0, 0);
 
   class_addbang(multy_class, multy_bang);

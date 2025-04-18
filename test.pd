@@ -1,5 +1,4 @@
-#N canvas 1705 399 313 261 12;
-#X obj 96 138 multy~;
+#N canvas 773 448 313 261 12;
 #X obj 96 88 metro 500 1 msec;
 #X msg 76 29 1;
 #X msg 125 30 0;
@@ -7,8 +6,9 @@
 #X floatatom 135 176 5 0 0 0 - - - 0;
 #X text 180 176 velocity;
 #X text 141 200 note;
-#X connect 0 0 4 0;
-#X connect 0 1 5 0;
+#X obj 96 138 multy;
+#X connect 0 0 7 0;
 #X connect 1 0 0 0;
-#X connect 2 0 1 0;
-#X connect 3 0 1 0;
+#X connect 2 0 0 0;
+#X connect 7 0 3 0;
+#X connect 7 1 4 0;

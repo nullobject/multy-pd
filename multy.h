@@ -36,6 +36,7 @@
 #ifndef MULTY_H_
 #define MULTY_H_
 
+#include <SDL2/SDL.h>
 #include <m_pd.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -52,6 +53,8 @@ typedef struct {
   bool running;
   pthread_t thread;
   state_t state;
+  SDL_Window *window;
+  SDL_Renderer *renderer;
 } t_multy;
 
 static t_class *multy_class;

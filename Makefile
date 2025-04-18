@@ -1,34 +1,20 @@
-LIB_NAME = multy~
-EXTENSION = pd_linux
-BIN_NAME = $(LIB_NAME).$(EXTENSION)
-PD_DIR = $(HOME)/Documents/Pd/externals
-INSTALL_DIR = $(PD_DIR)/$(LIB_NAME)
-PD_CFLAGS = $(shell pkg-config --cflags pd)
-SDL_CFLAGS = $(shell pkg-config --cflags SDL2_gfx)
-SDL_LIBS = $(shell pkg-config --libs SDL2_gfx)
+# Makefile to build class 'helloworld' for Pure Data.
+# Needs Makefile.pdlibbuilder as helper makefile for platform-dependent build
+# settings and rules.
 
-all: $(BIN_NAME)
-.PHONY: all
+# library name
+lib.name = multy
 
-install: $(BIN_NAME)
-	mkdir -p $(INSTALL_DIR)
-	cp -v $(BIN_NAME) $(INSTALL_DIR)
-.PHONY: install
+# input source file (class name == source file basename)
+class.sources = multy.c
+shared.sources = grid.c
 
-run:
-	`which puredata` test.pd &
-.PHONY: run
+# all extra files to be included in binary distribution of the library
+datafiles = README.md
 
-debug:
-	gf2 -ex run --args `which puredata` -nrt test.pd &
-.PHONY: debug
+cflags = $(shell pkg-config --cflags SDL2_gfx) -mmacosx-version-min=10.7
+ldlibs = $(shell pkg-config --libs SDL2_gfx)
 
-clean:
-	rm -f $(BIN_NAME) *.o
-.PHONY: clean
-
-%.o: %.c
-	cc -Wall -Werror -fPIC -ggdb -o $@ -c $< $(PD_CFLAGS) $(SDL_CFLAGS)
-
-$(BIN_NAME): grid.o multy.o
-	cc -rdynamic -shared -o $@ grid.o multy.o -lc -lm $(SDL_LIBS)
+# include Makefile.pdlibbuilder from submodule directory 'pd-lib-builder'
+PDLIBBUILDER_DIR=.
+include $(PDLIBBUILDER_DIR)/Makefile.pdlibbuilder
