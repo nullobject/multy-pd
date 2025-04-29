@@ -33,8 +33,8 @@
  * SOFTWARE.
  */
 
-#ifndef GRID_H_
-#define GRID_H_
+#ifndef GRID_H
+#define GRID_H
 
 #include <stdint.h>
 #include <sys/types.h>

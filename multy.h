@@ -33,8 +33,8 @@
  * SOFTWARE.
  */
 
-#ifndef MULTY_H_
-#define MULTY_H_
+#ifndef MULTY_H
+#define MULTY_H
 
 #include <m_pd.h>
 #include <pthread.h>
